@@ -29,11 +29,11 @@ namespace TheTracker
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(//MODIFY #01 Intro PostgreSQL
+                    Configuration.GetSection("pgSettings")["pgConnection"]));//MODIFY #04 PostgreSQL Database Setup Secret
 
             services.AddDatabaseDeveloperPageExceptionFilter();
-
+            ////MODIFY #01 Intro
             services.AddIdentity<TTUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultUI()
