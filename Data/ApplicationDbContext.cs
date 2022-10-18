@@ -16,7 +16,6 @@ namespace TheTracker.Data
             : base(options)
         {
         }
-
         //MODIFY #14 /Base Controllers with CRUD Operations/ DBSets
         public virtual DbSet<Company> Companies { get; set; } = default!;
         public virtual DbSet<Invite> Invites { get; set; } = default!;

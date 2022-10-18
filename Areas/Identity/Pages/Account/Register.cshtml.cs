@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using TheTracker.Models;
+using TheTracker.Data;
+using System.ComponentModel;
 
 namespace TheTracker.Areas.Identity.Pages.Account
 {
@@ -48,28 +50,28 @@ namespace TheTracker.Areas.Identity.Pages.Account
         {
             /// ADD
             [Required]
-            [Display(Name = "First Name")]
+            [DisplayName("First Name")]
             [StringLength(50, ErrorMessage = "The {0} must be at lest {2} and a max {1} characters long.", MinimumLength = 2)]
             public string FirstName { get; set; }
             /// ADD
             [Required]
-            [Display(Name = "Last Name")]
+            [DisplayName("Last Name")]
             [StringLength(50, ErrorMessage = "The {0} must be at lest {2} and a max {1} characters long.", MinimumLength = 2)]
             public string LastName { get; set; }
 
             [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
+            [DisplayName("Email")]
             public string Email { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [DisplayName("Password")]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [StringLength(24, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             public string Password { get; set; }
 
+            [DisplayName("Confirm Password")]
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
         }
@@ -86,7 +88,7 @@ namespace TheTracker.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new TTUser { UserName = Input.Email, Email = Input.Email, FirstName=Input.FirstName, LastName=Input.LastName };
+                var user = new TTUser { UserName=Input.Email, Email=Input.Email, FirstName=Input.FirstName, LastName=Input.LastName }; //MODIFY #01 File New Project (part 1)
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
