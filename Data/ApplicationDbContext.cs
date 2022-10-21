@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Text;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TheTracker.Models;
 
 namespace TheTracker.Data
@@ -19,9 +19,7 @@ namespace TheTracker.Data
         //MODIFY #14 /Base Controllers with CRUD Operations/ DBSets
         public virtual DbSet<Company> Companies { get; set; } = default!;
         public virtual DbSet<Invite> Invites { get; set; } = default!;
-        public virtual DbSet<Notification> Notifications { get; set; } = default!;
-        //public virtual DbSet<NotificationType> NotificationTypes { get; set; } = default!;
-
+       
         public virtual DbSet<Project> Projects { get; set; } = default!;
         public virtual DbSet<ProjectPriority> ProjectPriorities { get; set; } = default!;
 
@@ -32,5 +30,8 @@ namespace TheTracker.Data
         public virtual DbSet<TicketPriority> TicketPriorities { get; set; } = default!;
         public virtual DbSet<TicketStatus> TicketStatuses { get; set; } = default!;
         public virtual DbSet<TicketType> TicketTypes { get; set; } = default!;
+
+        public virtual DbSet<Notification> Notifications { get; set; } = default!;
+        //public virtual DbSet<NotificationType> NotificationTypes { get; set; } = default!;
     }
 }
