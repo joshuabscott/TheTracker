@@ -37,6 +37,19 @@ namespace TheTracker.Services
 
                                             .Include(p => p.Tickets)
                                                 .ThenInclude(t=>t.Comments)
+
+                                            .Include(p => p.Tickets)
+                                                .ThenInclude(t => t.Attachments)
+                                            .Include(p => p.Tickets)
+                                                .ThenInclude(t => t.History)
+                                            .Include(p => p.Tickets)
+                                                .ThenInclude(t => t.Notifications)
+
+                                             .Include(p => p.Tickets)
+                                                .ThenInclude(t => t.DeveloperUser)
+                                            .Include(p => p.Tickets)
+                                                .ThenInclude(t => t.OwnerUser)
+
                                             .Include(p => p.Tickets)
                                                 .ThenInclude(t => t.TicketPriority)
                                             .Include(p => p.Tickets)
@@ -69,7 +82,11 @@ namespace TheTracker.Services
             Company result = new();
             if (companyId != null)
             {
-                result = await _context.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+                result = await _context.Companies
+                                        .Include(c => c.Members)
+                                        .Include(c => c.Projects)
+                                        .Include(c => c.Invites)
+                                        .FirstOrDefaultAsync(c => c.Id == companyId);
             }
             return result;
         }

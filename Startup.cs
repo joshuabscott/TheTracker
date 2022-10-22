@@ -43,6 +43,8 @@ namespace TheTracker
 
             // MODIFY #5 Services / Role Services (part 4)
             services.AddScoped<ITTRolesService, TTRolesService>();
+            // ADD #9 Services / CompanyInfo Service (part 4)
+            services.AddScoped<ITTCompanyInfoService, TTCompanyInfoService>();
 
             services.AddControllersWithViews();
         }
