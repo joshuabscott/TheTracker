@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using TheTracker.Data;
 using TheTracker.Models;
+using TheTracker.Services;
+using TheTracker.Services.Interfaces;
 
 namespace TheTracker
 {
@@ -38,6 +40,9 @@ namespace TheTracker
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultUI()
                 .AddDefaultTokenProviders();
+
+            // MODIFY #5 Services / Role Services (part 4)
+            services.AddScoped<ITTRolesService, TTRolesService>();
 
             services.AddControllersWithViews();
         }
