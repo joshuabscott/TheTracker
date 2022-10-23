@@ -49,23 +49,25 @@ namespace TheTracker.Controllers
         public IActionResult Create()
         {
             ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "CompanyName");
+            ViewData["ProjectPriorityId"] = new SelectList(_context.ProjectPriorities, "Id", "Id");
             return View();
         }
 
         // POST: Projects/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // To protect from over-posting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,CompanyId,Name,Description,Created,StartDate,EndDate,ProjectPriorityId,Archived,ProjectFileData,ProjectFileType,ImageContentType")] Project project)
         {
             if (ModelState.IsValid)
-            {
+            {   // REFERENCE #11 Services / Project Service (part 1)
                 _context.Add(project);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "CompanyName", project.CompanyId);
+            ViewData["ProjectPriorityId"] = new SelectList(_context.ProjectPriorities, "Id", "Id", project.ProjectPriorityId);
             return View(project);
         }
 
@@ -101,7 +103,7 @@ namespace TheTracker.Controllers
             if (ModelState.IsValid)
             {
                 try
-                {
+                {   // REFERENCE #11 Services / Project Service (part 1)
                     _context.Update(project);
                     await _context.SaveChangesAsync();
                 }

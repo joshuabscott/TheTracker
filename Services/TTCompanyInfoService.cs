@@ -18,20 +18,21 @@ namespace TheTracker.Services
             _context = context;
         }
 
+        // MODIFY #7 Services / CompanyInfo Service (part 2)
         public async Task<List<TTUser>> GetAllMembersAsync(int companyId)
-        {
-            // MODIFY #7 Services / CompanyInfo Service (part 2)
+        {   // MODIFY #7 Services / CompanyInfo Service (part 2)
             //throw new NotImplementedException();
             List<TTUser> result = new List<TTUser>();
             result = await _context.Users.Where(u => u.CompanyId == companyId).ToListAsync();
             return result;
         }
 
+        // MODIFY #8 Services / CompanyInfoService (part 3)
         public async Task<List<Project>> GetAllProjectsAsync(int companyId)
-        {
-            // MODIFY #8 Services / CompanyInfoService (part 3)
+        {   // MODIFY #8 Services / CompanyInfoService (part 3)
             //throw new NotImplementedException();
             List<Project> result = new List<Project>();
+            // REFERENCE #12 Services / Project Service (part 2)
             result = await _context.Projects.Where(p => p.CompanyId == companyId)
                                             .Include(p => p.Members)
 
@@ -62,9 +63,9 @@ namespace TheTracker.Services
             return result;
         }
 
+        // MODIFY #9 Services / CompanyInfo Service (part 4)
         public async Task<List<Ticket>> GetAllTicketsAsync(int companyId)
-        {
-            // MODIFY #9 Services / CompanyInfo Service (part 4)
+        {   // MODIFY #9 Services / CompanyInfo Service (part 4)
             //throw new NotImplementedException();
             List<Ticket> result = new List<Ticket>();
             List<Project> projects = new List<Project>();
@@ -75,9 +76,9 @@ namespace TheTracker.Services
 
         }
 
+        // MODIFY #9 Services / CompanyInfo Service (part 4)
         public async Task<Company> GetCompanyInfoByIdAsync(int? companyId)
-        {
-            // MODIFY #9 Services / CompanyInfo Service (part 4)
+        {    // MODIFY #9 Services / CompanyInfo Service (part 4)
             //throw new NotImplementedException();
             Company result = new();
             if (companyId != null)

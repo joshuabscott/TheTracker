@@ -7,7 +7,7 @@ using TheTracker.Models;
 namespace TheTracker.Services.Interfaces
 {
     public interface ITTProjectService
-    {
+    {   // ADD #11 Services / Project Service (part 1)
         public Task AddNewProjectAsync(Project project);
         public Task<bool> AddProjectManagerAsync(string userId, int projectId);
         public Task<bool> AddUserToProjectAsync(string userId, int projectId);

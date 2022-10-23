@@ -44,7 +44,7 @@ namespace TheTracker.Models
 
         //Foreign Key
         [DisplayName("Priority")]
-        public string ProjectPriorityId { get; set; }
+        public int ProjectPriorityId { get; set; }
 
         [DisplayName("Archived")]
         public bool Archived { get; set; }
