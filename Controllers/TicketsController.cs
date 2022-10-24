@@ -70,7 +70,7 @@ namespace TheTracker.Controllers
         public async Task<IActionResult> Create([Bind("Id,Title,Description,Created,Updated,Archived,ProjectId,TicketTypeId,TicketPriorityId,TicketStatusId,OwnerUserId,DeveloperUserId")] Ticket ticket)
         {
             if (ModelState.IsValid)
-            {
+            {   // REFERENCE #17 Services / Ticket Service (part 1)
                 _context.Add(ticket);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

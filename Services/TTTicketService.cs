@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,40 +20,131 @@ namespace TheTracker.Services
             _context = context;
             _rolesService = rolesService;
         }
-
-        public Task AddNewTicketAsync(Ticket ticket)
-        {
-            throw new NotImplementedException();
+        // ADD #17 Services / Ticket Service (part 1) C.R.U.D. - CREATE
+        public async Task AddNewTicketAsync(Ticket ticket)
+        {   //REFERENCE TicketsController Create POST
+            _context.Add(ticket);
+            await _context.SaveChangesAsync();
         }
-
-        public Task ArchiveTicketAsync(Ticket ticket)
+        // ADD #17 Services / Ticket Service (part 1) C.R.U.D. - "DELETE"
+        public async Task ArchiveTicketAsync(Ticket ticket)
         {
-            throw new NotImplementedException();
+            ticket.Archived = true;
+            _context.Add(ticket);
+            await _context.SaveChangesAsync();
         }
 
         public Task AssignTicketAsync(int ticketId, string userId)
         {
             throw new NotImplementedException();
         }
-
-        public Task<List<Ticket>> GetAllTicketsByCompanyAsync(int companyId)
+        // ADD #19 Services / Ticket Service (part 3)
+        public async Task<List<Ticket>> GetAllTicketsByCompanyAsync(int companyId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                List<Ticket> tickets = await _context.Projects
+                                                     .Where(p => p.CompanyId == companyId)
+                                                     .SelectMany(p => p.Tickets)
+                                                        .Include(t => t.Attachments)
+                                                        .Include(t => t.Comments)
+                                                        .Include(t => t.History)
+                                                        .Include(t => t.DeveloperUser)
+                                                        .Include(t => t.OwnerUser)
+                                                        .Include(t => t.TicketPriority)
+                                                        .Include(t => t.TicketStatus)
+                                                        .Include(t => t.TicketType)
+                                                        .Include(t => t.Project)
+                                                    .ToListAsync();
+                return tickets;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
-
-        public Task<List<Ticket>> GetAllTicketsByPriorityAsync(int companyId, string priorityName)
+        // ADD #19 Services / Ticket Service (part 3)
+        public async Task<List<Ticket>> GetAllTicketsByPriorityAsync(int companyId, string priorityName)
         {
-            throw new NotImplementedException();
+            int priorityId = (await LookupTicketPriorityIdAsync(priorityName)).Value;
+            try
+            {
+                List<Ticket> tickets = await _context.Projects
+                                                     .Where(p => p.CompanyId == companyId)
+                                                     .SelectMany(p => p.Tickets)
+                                                        .Include(t => t.Attachments)
+                                                        .Include(t => t.Comments)
+                                                        .Include(t => t.History)
+                                                        .Include(t => t.DeveloperUser)
+                                                        .Include(t => t.OwnerUser)
+                                                        .Include(t => t.TicketPriority)
+                                                        .Include(t => t.TicketStatus)
+                                                        .Include(t => t.TicketType)
+                                                        .Include(t => t.Project)
+                                                    .Where(t => t.TicketPriorityId == priorityId)
+                                                    .ToListAsync();
+                return tickets;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
-
-        public Task<List<Ticket>> GetAllTicketsByStatusAsync(int companyId, string statusName)
+        // ADD #19 Services / Ticket Service (part 3)
+        public async Task<List<Ticket>> GetAllTicketsByStatusAsync(int companyId, string statusName)
         {
-            throw new NotImplementedException();
+            int statusId = (await LookupTicketStatusIdAsync(statusName)).Value;
+            try
+            {
+                List<Ticket> tickets = await _context.Projects
+                                                     .Where(p => p.CompanyId == companyId)
+                                                     .SelectMany(p => p.Tickets)
+                                                        .Include(t => t.Attachments)
+                                                        .Include(t => t.Comments)
+                                                        .Include(t => t.History)
+                                                        .Include(t => t.DeveloperUser)
+                                                        .Include(t => t.OwnerUser)
+                                                        .Include(t => t.TicketPriority)
+                                                        .Include(t => t.TicketStatus)
+                                                        .Include(t => t.TicketType)
+                                                        .Include(t => t.Project)
+                                                    .Where(t => t.TicketStatusId == statusId)
+                                                    .ToListAsync();
+                return tickets;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
-
-        public Task<List<Ticket>> GetAllTicketsByTypeAsync(int companyId, string typeName)
+        // ADD #19 Services / Ticket Service (part 3)
+        public async Task<List<Ticket>> GetAllTicketsByTypeAsync(int companyId, string typeName)
         {
-            throw new NotImplementedException();
+            int typeId = (await LookupTicketTypeIdAsync(typeName)).Value;
+            try
+            {
+                List<Ticket> tickets = await _context.Projects
+                                                     .Where(p => p.CompanyId == companyId)
+                                                     .SelectMany(p => p.Tickets)
+                                                        .Include(t => t.Attachments)
+                                                        .Include(t => t.Comments)
+                                                        .Include(t => t.History)
+                                                        .Include(t => t.DeveloperUser)
+                                                        .Include(t => t.OwnerUser)
+                                                        .Include(t => t.TicketPriority)
+                                                        .Include(t => t.TicketStatus)
+                                                        .Include(t => t.TicketType)
+                                                        .Include(t => t.Project)
+                                                    .Where(t => t.TicketTypeId == typeId)
+                                                    .ToListAsync();
+                return tickets;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         public Task<List<Ticket>> GetArchivedTicketsAsync(int companyId)
@@ -79,10 +171,10 @@ namespace TheTracker.Services
         {
             throw new NotImplementedException();
         }
-
-        public Task<Ticket> GetTicketByIdAsync(int ticketId)
+        // ADD #17 Services / Ticket Service (part 1) C.R.U.D. - READ
+        public async Task<Ticket> GetTicketByIdAsync(int ticketId)
         {
-            throw new NotImplementedException();
+            return await _context.Tickets.FirstOrDefaultAsync(t => t.Id == ticketId);
         }
 
         public Task<TTUser> GetTicketDeveloperAsync(int ticketId)
@@ -99,25 +191,51 @@ namespace TheTracker.Services
         {
             throw new NotImplementedException();
         }
-
-        public Task<int?> LookupTicketPriorityIdAsync(string priorityName)
+        // ADD #18 Services / Ticket Service (part 2)
+        public async Task<int?> LookupTicketPriorityIdAsync(string priorityName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                TicketPriority priority = await _context.TicketPriorities.FirstOrDefaultAsync(p => p.Name == priorityName);
+                return priority?.Id;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
-
-        public Task<int?> LookupTicketStatusIdAsync(string statusName)
+        // ADD #18 Services / Ticket Service (part 2)
+        public async Task<int?> LookupTicketStatusIdAsync(string statusName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                TicketStatus status = await _context.TicketStatuses.FirstOrDefaultAsync(p => p.Name == statusName);
+                return status?.Id;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
-
-        public Task<int?> LookupTicketTypeIdAsync(string typeName)
+        // ADD #18 Services / Ticket Service (part 2)
+        public async Task<int?> LookupTicketTypeIdAsync(string typeName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                TicketType type = await _context.TicketTypes.FirstOrDefaultAsync(p => p.Name == typeName);
+                return type?.Id;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
+        // ADD #17 Services / Ticket Service (part 1) C.R.U.D. - UPDATE
+        public async Task UpdateTicketAsync(Ticket ticket)
+        {   //REFERENCE TicketsController Create POST
+            _context.Add(ticket);
+            await _context.SaveChangesAsync();
 
-        public Task UpdateTicketAsync(Ticket ticket)
-        {
-            throw new NotImplementedException();
         }
     }
 }
