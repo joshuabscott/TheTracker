@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TheTracker.Data;
 using TheTracker.Models;
+using TheTracker.Models.Enums;
 using TheTracker.Services.Interfaces;
 // ADD #11 Services / Project Service (part 1)
 namespace TheTracker.Services
@@ -13,16 +14,13 @@ namespace TheTracker.Services
     public class TTProjectService : ITTProjectService  // Implement creates a baseline of scaffolded code to start with
     {
         private readonly ApplicationDbContext _context; /*private property*/
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<TTUser> _userManager;
+        private readonly ITTRolesService _rolesService;
 
         public TTProjectService(ApplicationDbContext context,
-                               RoleManager<IdentityRole> roleManager,
-                               UserManager<TTUser> userManager) /*method constructor*/
+                               ITTRolesService rolesService) /*method constructor*/
         {
             _context = context;
-            _roleManager = roleManager;
-            _userManager = userManager;
+            _rolesService = rolesService;
         }
 
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - CREATE
@@ -32,18 +30,65 @@ namespace TheTracker.Services
             _context.Add(project);
             await _context.SaveChangesAsync();
         }
-
-        public Task<bool> AddProjectManagerAsync(string userId, int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #15 Services / Project Service (part 5)
+        public async Task<bool> AddProjectManagerAsync(string userId, int projectId)
+        {   // ADD #15 Services / Project Service (part 5)
+            TTUser currentPM = await GetProjectManagerAsync(projectId);
+            //Remove the current PM if necessary
+            if(currentPM != null)
+            {
+                try
+                {
+                    await RemoveProjectManagerAsync(projectId);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"*** ERROR, GREATSCOTT! *** - Error Removing current PM. ---> {ex.Message}");
+                    return false;
+                }
+            }
+            // ADD the new PM
+            try
+            {
+                await AddUserToProjectAsync(userId, projectId);//change this from AddProjectManagerAsync
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"*** ERROR, GREATSCOTT! *** - Error Adding PM to project. ---> {ex.Message}");
+                return false;
+            }
         }
-
-        public Task<bool> AddUserToProjectAsync(string userId, int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #13 Services / Project Service (part 3)
+        public async Task<bool> AddUserToProjectAsync(string userId, int projectId)
+        {   // ADD #13 Services / Project Service (part 3)
+            TTUser user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if(user != null)
+            {
+                Project project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
+                if(!await IsUserOnProjectAsync(userId, projectId))
+                {
+                    try 
+                    {
+                        project.Members.Add(user);
+                        await _context.SaveChangesAsync();
+                        return true;    //Prevent User from being added to same project twice buy returning true or false on all paths
+                    }
+                    catch(Exception)
+                    {
+                        throw;
+                    }
+                }
+                else
+                {
+                    return false;   //Prevent User from being added to same project twice buy returning true or false on all paths
+                }
+            }
+            else
+            {
+                return false;   //Prevent User from being added to same project twice buy returning true or false on all paths
+            }
         }
-
-
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - "DELETE"
         public async Task ArchiveProjectAsync(Project project)
         {   // ADD #11 Services / Project Service (part 1)
@@ -51,12 +96,16 @@ namespace TheTracker.Services
             _context.Update(project);
             await _context.SaveChangesAsync();
         }
+        // ADD #14 Services / Project Service (part 4)
+        public async Task<List<TTUser>> GetAllProjectMembersExceptPMAsync(int projectId)
+        {   // ADD #14 Services / Project Service (part 4)
+            List<TTUser> admins = await GetProjectMembersByRoleAsync(projectId, Roles.Admin.ToString());
+            List<TTUser> submitters = await GetProjectMembersByRoleAsync(projectId, Roles.Developer.ToString());
+            List<TTUser> developers = await GetProjectMembersByRoleAsync(projectId, Roles.Submitter.ToString());
 
-        public Task<List<TTUser>> GetAllProjectMembersExceptPMAsync(int projectId)
-        {
-            throw new NotImplementedException();
+            List<TTUser> teamMembers = developers.Concat(submitters).Concat(admins).ToList();
+            return teamMembers;
         }
-
         // ADD #12 Services / Project Service (part 2)
         public async Task<List<Project>> GetAllProjectsByCompany(int companyId)
         {   // ADD #12 Services / Project Service (part 2)
@@ -90,7 +139,6 @@ namespace TheTracker.Services
                                             .ToListAsync();
             return projects;
         }
-
         // ADD #12 Services / Project Service (part 2)
         public async Task<List<Project>> GetAllProjectsByPriority(int companyId, string priorityName)
         {   // ADD #12 Services / Project Service (part 2)
@@ -98,7 +146,6 @@ namespace TheTracker.Services
             int priorityId = await LookupProjectPriorityId(priorityName);
             return projects.Where(p => p.ProjectPriorityId == priorityId).ToList();
         }
-
         // ADD #12 Services / Project Service (part 2)
         public async Task<List<Project>> GetArchivedProjectsByCompany(int companyId)
         {   // ADD #12 Services / Project Service (part 2)
@@ -106,12 +153,10 @@ namespace TheTracker.Services
             return projects.Where(p => p.Archived == true).ToList();
         }
 
-        
         public Task<List<TTUser>> GetDevelopersOnProjectAsync(int projectId)
         {
             throw new NotImplementedException();
         }
-
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - READ
         public async Task<Project> GetProjectByIdAsync(int projectId, int companyId)
         {   // ADD #11 Services / Project Service (part 1)
@@ -122,62 +167,175 @@ namespace TheTracker.Services
                                             .FirstOrDefaultAsync(p =>p.Id == projectId && p.CompanyId == companyId);
             return project;
         }
-
-        
-        public Task<TTUser> GetProjectManagerAsync(int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #15 Services / Project Service (part 5)
+        public async Task<TTUser> GetProjectManagerAsync(int projectId)
+        {   // ADD #15 Services / Project Service (part 5)
+            Project project = await _context.Projects
+                                            .Include(p => p.Members)
+                                            .FirstOrDefaultAsync(p => p.Id == projectId);
+            foreach (TTUser member in project?.Members)
+            {
+                if (await _rolesService.IsUserInRoleAsync(member, Roles.ProjectManager.ToString()))
+                {
+                    return member;
+                }
+            }
+            return null;
         }
-
-        public Task<List<TTUser>> GetProjectMembersByRoleAsync(int projectId, string role)
-        {
-            throw new NotImplementedException();
+        // ADD #14 Services / Project Service (part 4)
+        public async Task<List<TTUser>> GetProjectMembersByRoleAsync(int projectId, string role)
+        {   // ADD #14 Services / Project Service (part 4)
+            Project project = await _context.Projects
+                                            .Include(p => p.Members)
+                                            .FirstOrDefaultAsync(p => p.Id == projectId);
+            List<TTUser> members = new();
+            foreach(var user in project.Members)
+            {
+                if(await _rolesService.IsUserInRoleAsync(user, role))
+                {
+                    members.Add(user);
+                }
+            }
+            return members;
         }
 
         public Task<List<TTUser>> GetSubmittersOnProjectAsync(int projectId)
         {
             throw new NotImplementedException();
         }
-
-        public Task<List<Project>> GetUserProjectsAsync(string userId)
-        {
-            throw new NotImplementedException();
+        // ADD #13 Services / Project Service (part 3)
+        public async Task<List<Project>> GetUserProjectsAsync(string userId)
+        {   // ADD #13 Services / Project Service (part 3)
+            try
+            {
+                List<Project> userProjects = (await _context.Users
+                                            .Include(u => u.Projects)
+                                                .ThenInclude(p => p.Company)
+                                             .Include(u => u.Projects)
+                                                .ThenInclude(p => p.Members)
+                                            .Include(u => u.Projects)
+                                                .ThenInclude(p => p.Tickets)
+                                            .Include(u => u.Projects)
+                                                 .ThenInclude(t => t.Tickets)
+                                                     .ThenInclude(t => t.DeveloperUser)
+                                            .Include(u => u.Projects)
+                                                  .ThenInclude(t => t.Tickets)
+                                                     .ThenInclude(t => t.OwnerUser)
+                                            .Include(u => u.Projects)
+                                                 .ThenInclude(t => t.Tickets)
+                                                     .ThenInclude(t => t.TicketPriority)
+                                            .Include(u => u.Projects)
+                                                 .ThenInclude(t => t.Tickets)
+                                                     .ThenInclude(t => t.TicketStatus)
+                                            .Include(u => u.Projects)
+                                                 .ThenInclude(t => t.Tickets)
+                                                     .ThenInclude(t => t.TicketType)
+                                            .FirstOrDefaultAsync(u => u.Id == userId)).Projects.ToList();
+                return userProjects;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"*** ERROR, GREATSCOTT! *** - Error Getting user projects list. --> {ex.Message}");
+                throw;
+            }
         }
-
-        public Task<List<TTUser>> GetUsersNotOnProjectAsync(int projectId, int companyId)
-        {
-            throw new NotImplementedException();
+        // ADD #14 Services / Project Service (part 4)
+        public async Task<List<TTUser>> GetUsersNotOnProjectAsync(int projectId, int companyId)
+        {   // ADD #14 Services / Project Service (part 4)
+            List<TTUser> users = await _context.Users.Where(u => u.Projects.All(p => p.Id != projectId)).ToListAsync();
+            return users.Where(u => u.CompanyId == companyId).ToList();
         }
-
-       
-        public Task<bool> IsUserOnProject(string userId, int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #13 Services / Project Service (part 3)
+        public async Task<bool> IsUserOnProjectAsync(string userId, int projectId)
+        {   // ADD #13 Services / Project Service (part 3)
+            Project project = await _context.Projects
+                                            .Include(p => p.Members)
+                                            .FirstOrDefaultAsync(p => p.Id == projectId);
+            bool result = false;
+            if (project != null) 
+            {
+                result = project.Members.Any(m => m.Id == userId);
+            }
+            return result;
         }
-
         // ADD #12 Services / Project Service (part 2)
         public async Task<int> LookupProjectPriorityId(string priorityName)
         {   // ADD #12 Services / Project Service (part 2)
             int priorityId = (await _context.ProjectPriorities.FirstOrDefaultAsync(p => p.Name == priorityName)).Id;
             return priorityId;
         }
-
-       
-        public Task RemoveProjectManagerAsync(int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #15 Services / Project Service (part 5)
+        public async Task RemoveProjectManagerAsync(int projectId)
+        {   // ADD #15 Services / Project Service (part 5)
+            Project project = await _context.Projects
+                                            .Include(p => p.Members)
+                                            .FirstOrDefaultAsync(p => p.Id == projectId);
+            try
+            {
+                foreach(TTUser member in project?.Members)
+                {
+                    if (await _rolesService.IsUserInRoleAsync(member, Roles.ProjectManager.ToString()))
+                    {
+                        await RemoveUserFromProjectAsync(member.Id, projectId);
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
         }
-
-        public Task RemoveUserFromProjectAsync(string userId, int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #13 Services / Project Service (part 3)
+        public async Task RemoveUserFromProjectAsync(string userId, int projectId)
+        {   // ADD #13 Services / Project Service (part 3)
+            try
+            {
+                TTUser user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                Project project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
+                try
+                {
+                    if (await IsUserOnProjectAsync(userId, projectId))
+                    {
+                        project.Members.Remove(user);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"*** ERROR, GREATSCOTT! *** - Error Removing User from project. ---> {ex.Message}");
+            }
         }
-
-        public Task RemoveUsersFromProjectByRoleAsync(string role, int projectId)
-        {
-            throw new NotImplementedException();
+        // ADD #14 Services / Project Service (part 4)
+        public async Task RemoveUsersFromProjectByRoleAsync(string role, int projectId)
+        {   // ADD #14 Services / Project Service (part 4)
+            try
+            {
+                List<TTUser> members = await GetProjectMembersByRoleAsync(projectId, role);
+                Project project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
+                foreach(TTUser ttUser in members)
+                {
+                    try
+                    {
+                        project.Members.Remove(ttUser);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"*** ERROR, GREATSCOTT! *** - Error Removing Users from project. ---> {ex.Message}");
+                throw;
+            }
         }
-
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - UPDATE
         public async Task UpdateProjectAsync(Project project)
         {   // ADD #11 Services / Project Service (part 1)
