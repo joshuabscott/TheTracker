@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,8 +48,15 @@ namespace TheTracker
             services.AddScoped<ITTCompanyInfoService, TTCompanyInfoService>();
             // ADD #15 Services / Project Service (part 5)
             services.AddScoped<ITTProjectService, TTProjectService>();
+            // ADD #21  Services / Ticket Service (part 5)
+            services.AddScoped<ITTTicketService, TTTicketService>();
+            // ADD #23 Services / Ticket History Service (part 2)
+            services.AddScoped<ITTTicketHistoryService, TTTicketHistoryService>();
+            // ADD #24 Services / Email Service
+            services.AddScoped<IEmailSender, TTEmailService>();
+            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
 
-            services.AddControllersWithViews();
+           services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

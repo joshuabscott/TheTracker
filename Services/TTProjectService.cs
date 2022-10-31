@@ -13,7 +13,7 @@ namespace TheTracker.Services
 {
     public class TTProjectService : ITTProjectService  // Implement creates a baseline of scaffolded code to start with
     {
-        private readonly ApplicationDbContext _context; /*private property*/
+        private readonly ApplicationDbContext _context; /*private properties*/
         private readonly ITTRolesService _rolesService;
 
         public TTProjectService(ApplicationDbContext context,
@@ -26,13 +26,12 @@ namespace TheTracker.Services
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - CREATE
         public async Task AddNewProjectAsync(Project project)
         {
-            // ADD #11 Services / Project Service (part 1)
             _context.Add(project);
             await _context.SaveChangesAsync();
         }
         // ADD #15 Services / Project Service (part 5)
         public async Task<bool> AddProjectManagerAsync(string userId, int projectId)
-        {   // ADD #15 Services / Project Service (part 5)
+        {  
             TTUser currentPM = await GetProjectManagerAsync(projectId);
             //Remove the current PM if necessary
             if(currentPM != null)
@@ -61,7 +60,7 @@ namespace TheTracker.Services
         }
         // ADD #13 Services / Project Service (part 3)
         public async Task<bool> AddUserToProjectAsync(string userId, int projectId)
-        {   // ADD #13 Services / Project Service (part 3)
+        {  
             TTUser user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if(user != null)
             {
@@ -91,14 +90,14 @@ namespace TheTracker.Services
         }
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - "DELETE"
         public async Task ArchiveProjectAsync(Project project)
-        {   // ADD #11 Services / Project Service (part 1)
+        {   
             project.Archived = true;
             _context.Update(project);
             await _context.SaveChangesAsync();
         }
         // ADD #14 Services / Project Service (part 4)
         public async Task<List<TTUser>> GetAllProjectMembersExceptPMAsync(int projectId)
-        {   // ADD #14 Services / Project Service (part 4)
+        {   
             List<TTUser> admins = await GetProjectMembersByRoleAsync(projectId, Roles.Admin.ToString());
             List<TTUser> submitters = await GetProjectMembersByRoleAsync(projectId, Roles.Developer.ToString());
             List<TTUser> developers = await GetProjectMembersByRoleAsync(projectId, Roles.Submitter.ToString());
@@ -108,7 +107,7 @@ namespace TheTracker.Services
         }
         // ADD #12 Services / Project Service (part 2)
         public async Task<List<Project>> GetAllProjectsByCompany(int companyId)
-        {   // ADD #12 Services / Project Service (part 2)
+        {   
             List<Project> projects = new();
             projects = await _context.Projects.Where(p => p.CompanyId == companyId)
                                             .Include(p => p.Members)
@@ -141,14 +140,14 @@ namespace TheTracker.Services
         }
         // ADD #12 Services / Project Service (part 2)
         public async Task<List<Project>> GetAllProjectsByPriority(int companyId, string priorityName)
-        {   // ADD #12 Services / Project Service (part 2)
+        {   
             List<Project> projects = await GetAllProjectsByCompany(companyId);
             int priorityId = await LookupProjectPriorityId(priorityName);
             return projects.Where(p => p.ProjectPriorityId == priorityId).ToList();
         }
         // ADD #12 Services / Project Service (part 2)
         public async Task<List<Project>> GetArchivedProjectsByCompany(int companyId)
-        {   // ADD #12 Services / Project Service (part 2)
+        {   
             List<Project> projects = await GetAllProjectsByCompany(companyId);
             return projects.Where(p => p.Archived == true).ToList();
         }
@@ -159,7 +158,7 @@ namespace TheTracker.Services
         }
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - READ
         public async Task<Project> GetProjectByIdAsync(int projectId, int companyId)
-        {   // ADD #11 Services / Project Service (part 1)
+        {   
             Project project = await _context.Projects
                                             .Include(p => p.Tickets)
                                             .Include(p => p.Members)
@@ -169,7 +168,7 @@ namespace TheTracker.Services
         }
         // ADD #15 Services / Project Service (part 5)
         public async Task<TTUser> GetProjectManagerAsync(int projectId)
-        {   // ADD #15 Services / Project Service (part 5)
+        {   
             Project project = await _context.Projects
                                             .Include(p => p.Members)
                                             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -184,7 +183,7 @@ namespace TheTracker.Services
         }
         // ADD #14 Services / Project Service (part 4)
         public async Task<List<TTUser>> GetProjectMembersByRoleAsync(int projectId, string role)
-        {   // ADD #14 Services / Project Service (part 4)
+        {   
             Project project = await _context.Projects
                                             .Include(p => p.Members)
                                             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -205,7 +204,7 @@ namespace TheTracker.Services
         }
         // ADD #13 Services / Project Service (part 3)
         public async Task<List<Project>> GetUserProjectsAsync(string userId)
-        {   // ADD #13 Services / Project Service (part 3)
+        {   // REFERENCED #20 Services / Ticket Service (part 4)
             try
             {
                 List<Project> userProjects = (await _context.Users
@@ -241,13 +240,13 @@ namespace TheTracker.Services
         }
         // ADD #14 Services / Project Service (part 4)
         public async Task<List<TTUser>> GetUsersNotOnProjectAsync(int projectId, int companyId)
-        {   // ADD #14 Services / Project Service (part 4)
+        {   
             List<TTUser> users = await _context.Users.Where(u => u.Projects.All(p => p.Id != projectId)).ToListAsync();
             return users.Where(u => u.CompanyId == companyId).ToList();
         }
         // ADD #13 Services / Project Service (part 3)
         public async Task<bool> IsUserOnProjectAsync(string userId, int projectId)
-        {   // ADD #13 Services / Project Service (part 3)
+        {  
             Project project = await _context.Projects
                                             .Include(p => p.Members)
                                             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -260,13 +259,13 @@ namespace TheTracker.Services
         }
         // ADD #12 Services / Project Service (part 2)
         public async Task<int> LookupProjectPriorityId(string priorityName)
-        {   // ADD #12 Services / Project Service (part 2)
+        {   
             int priorityId = (await _context.ProjectPriorities.FirstOrDefaultAsync(p => p.Name == priorityName)).Id;
             return priorityId;
         }
         // ADD #15 Services / Project Service (part 5)
         public async Task RemoveProjectManagerAsync(int projectId)
-        {   // ADD #15 Services / Project Service (part 5)
+        {  
             Project project = await _context.Projects
                                             .Include(p => p.Members)
                                             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -287,7 +286,7 @@ namespace TheTracker.Services
         }
         // ADD #13 Services / Project Service (part 3)
         public async Task RemoveUserFromProjectAsync(string userId, int projectId)
-        {   // ADD #13 Services / Project Service (part 3)
+        {  
             try
             {
                 TTUser user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -312,7 +311,7 @@ namespace TheTracker.Services
         }
         // ADD #14 Services / Project Service (part 4)
         public async Task RemoveUsersFromProjectByRoleAsync(string role, int projectId)
-        {   // ADD #14 Services / Project Service (part 4)
+        {   
             try
             {
                 List<TTUser> members = await GetProjectMembersByRoleAsync(projectId, role);
@@ -338,7 +337,7 @@ namespace TheTracker.Services
         }
         // ADD #11 Services / Project Service (part 1) C.R.U.D. - UPDATE
         public async Task UpdateProjectAsync(Project project)
-        {   // ADD #11 Services / Project Service (part 1)
+        {  
             _context.Update(project);
             await _context.SaveChangesAsync();
         }

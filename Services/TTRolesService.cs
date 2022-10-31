@@ -11,7 +11,7 @@ namespace TheTracker.Services
 {
     public class TTRolesService : ITTRolesService // Implement creates a baseline of scaffolded code to start with
     {
-        private readonly ApplicationDbContext _context; /*private property*/
+        private readonly ApplicationDbContext _context; /*private properties*/
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<TTUser> _userManager;
 
