@@ -53,7 +53,7 @@ namespace TheTracker.Models
         public virtual TTUser Recipient { get; set; }
         //public virtual NotificationType NotificationType { get; set; }
 
-        public virtual ICollection<Project> Projects { get; set; } = new HashSet<Project>();
-        public virtual ICollection<Ticket> Tickets { get; set; } = new HashSet<Ticket>();
+        public virtual ICollection<Project> Project { get; set; } = new HashSet<Project>();
+        public virtual ICollection<Ticket> Ticket { get; set; } = new HashSet<Ticket>();
     }
 }
