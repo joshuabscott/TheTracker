@@ -52,11 +52,14 @@ namespace TheTracker
             services.AddScoped<ITTTicketService, TTTicketService>();
             // ADD #23 Services / Ticket History Service (part 2)
             services.AddScoped<ITTTicketHistoryService, TTTicketHistoryService>();
+            // ADD #25 Services / Notification Service
+            services.AddScoped<ITTNotificationService, TTNotificationService>();
+
             // ADD #24 Services / Email Service
             services.AddScoped<IEmailSender, TTEmailService>();
             services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
 
-           services.AddControllersWithViews();
+            services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
