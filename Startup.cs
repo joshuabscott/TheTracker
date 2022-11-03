@@ -54,6 +54,11 @@ namespace TheTracker
             services.AddScoped<ITTTicketHistoryService, TTTicketHistoryService>();
             // ADD #25 Services / Notification Service
             services.AddScoped<ITTNotificationService, TTNotificationService>();
+            // ADD #26 Services / Invite Service
+            services.AddScoped<ITTInviteService, TTInviteService>();
+            // ADD #27 Services / File Service
+            services.AddScoped<ITTFileService, TTFileService>();
+
 
             // ADD #24 Services / Email Service
             services.AddScoped<IEmailSender, TTEmailService>();

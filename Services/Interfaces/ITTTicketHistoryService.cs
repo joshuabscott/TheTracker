@@ -6,7 +6,7 @@ using TheTracker.Models;
 // ADD #22 Services / Ticket History Service (part 1)
 namespace TheTracker.Services.Interfaces
 {
-    interface ITTTicketHistoryService
+    public interface ITTTicketHistoryService
     {
         Task AddHistoryAsync(Ticket oldTicket, Ticket newTicket, string userId);
 
