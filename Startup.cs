@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TheTracker.Data;
+using TheTracker.Models;
+using TheTracker.Services;
+using TheTracker.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,14 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using TheTracker.Data;
-using TheTracker.Models;
-using TheTracker.Services;
-using TheTracker.Services.Interfaces;
+using TheTracker.Services.Factories;
 
 namespace TheTracker
 {
@@ -28,17 +29,19 @@ namespace TheTracker
 
         public IConfiguration Configuration { get; }
 
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(//MODIFY #01 Intro PostgreSQL
-                    Configuration.GetSection("pgSettings")["pgConnection"]));//MODIFY #04 PostgreSQL Database Setup Secret
+                options.UseNpgsql(DataUtility.GetConnectionString(Configuration),
+                o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
             services.AddDatabaseDeveloperPageExceptionFilter();
             ////MODIFY #01 Intro
             services.AddIdentity<TTUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddClaimsPrincipalFactory<TTUserClaimsPrincipalFactory>()
                 .AddDefaultUI()
                 .AddDefaultTokenProviders();
 
@@ -59,14 +62,12 @@ namespace TheTracker
             // ADD #27 Services / File Service
             services.AddScoped<ITTFileService, TTFileService>();
 
-
             // ADD #24 Services / Email Service
             services.AddScoped<IEmailSender, TTEmailService>();
             services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
 
             services.AddControllersWithViews();
         }
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
