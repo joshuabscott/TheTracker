@@ -57,7 +57,6 @@ namespace TheTracker.Controllers
         }
         #endregion
 
-
         #region POST ManageUserRoles
         [HttpPost]
         [ValidateAntiForgeryToken]

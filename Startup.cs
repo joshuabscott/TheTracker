@@ -61,6 +61,9 @@ namespace TheTracker
             services.AddScoped<ITTInviteService, TTInviteService>();
             // ADD #27 Services / File Service
             services.AddScoped<ITTFileService, TTFileService>();
+            
+            // ADD #2  Project Features / Project: LookupService
+            services.AddScoped<ITTLookupService, TTLookupService>();
 
             // ADD #24 Services / Email Service
             services.AddScoped<IEmailSender, TTEmailService>();
